@@ -20,4 +20,4 @@ data Move = Move Player Point Point deriving (Show, Eq)
 
 data Moves = Moves [Move] deriving (Show)
 
-data GameState = GameState Player Dice [(Player, Dice, Point)] deriving (Show)
+data GameState = GameState Player Dice [(Player, Dice, Point)] deriving (Show, Eq)

@@ -83,14 +83,45 @@ getMoves (GameState p dice stones) =
           legalDice = getLegalDice dice playerDice
           legalStones = filter (\(_, d, _) -> elem d legalDice) playerStones
 
--- public
--- unimplemented
--- apply a move to the GameState object
-doMove :: GameState -> Move -> GameState
-doMove _ _ = GameState (Player 0) (Dice 0) []
+
+
+-- verify whether the supplied move is legal in the current game state
+verifyLegalMove :: GameState -> Move -> Bool
+verifyLegalMove (GameState player dice stones) (Move mplayer p1 p2) =
+    (&&) (player == mplayer)
+    $ elem (Move mplayer p1 p2) moves
+    where
+        (Moves moves) = getMoves (GameState player dice stones)
+
+-- apply a move to the GameState object with supplying a new rolled dice value
+doMove' :: GameState -> Move -> Dice -> GameState
+doMove' (GameState (Player pID) dice stones) move newDice =
+    if verifyLegalMove (GameState (Player pID) dice stones) move
+    then let
+        Move _ oldPoint newPoint = move
+        oldStone = head $ filter (\(_, _, p) -> p == oldPoint) stones
+        (player, diceVal, _) = oldStone
+        newStone = (player, diceVal, newPoint)
+        newStones = (filter (\(_, _, p) -> (&&) (p /= oldPoint) (p /= newPoint)) stones) ++ [newStone]
+        newPID = mod (pID + 1) 2
+    in (GameState (Player newPID) newDice newStones)
+    else (GameState (Player pID) dice stones)
 
 -- public
--- unimplemented
+-- apply a move to the GameState object
+doMove :: GameState -> Move -> IO GameState
+doMove gs move = do
+    g <- newStdGen
+    let randOut = randomR (1,6) g
+    let dice = Dice (fst randOut)
+    return $ doMove' gs move dice
+
+-- public
 -- get a winner if a game state has one
 getWinner :: GameState -> Winner
-getWinner _ = Winner Nothing
+getWinner (GameState player _ stones) =
+    let p0Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 0)) (p == (Point 4 4))) stones
+        p1Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 1)) (p == (Point 0 0))) stones
+    in if (length p0Winners) > 0 then Winner (Just (Player 0))
+    else if (length p1Winners) > 0 then Winner (Just (Player 1))
+    else Winner Nothing
