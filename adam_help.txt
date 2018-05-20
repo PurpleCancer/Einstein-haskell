@@ -1,0 +1,5 @@
+Chociaż naprodukowałem kodu, to nie napisałem makefila, bo wszystko dotychczas robiłem interaktywnie. Załadowanie kodu i bawienie się nim sprowadza się do uruchomienia ghci i wpisania tam ":l EinStein/Logic" z odpowiednią ścieżką na plik logiki, zależnie gdzie uruchomiłeś ghci. Gdyby marudził na brak pakietów, to użyj cabala: np. dla pakietu System.Random.Shuffle znajdujesz na Hackage, że pakiet tak naprawdę nazywa się random-shuffle-0.0.4, więc wykonujesz "cabal install random-shuffle" i powinno działać.
+
+Ponieważ np. startState nie jest czystą funkcją i korzysta z losowości, to zwraca obiekt GameState opakowany w monadę IO. Dlatego żeby uzyskać samą zmienną GameState, wykonujesz "state <- startState" zamiast "let state = startState" (druga opcja podstawi pod state funkcję startState).
+
+W poniedziałek 21.05 nieoczywiste rzeczy Ci wytłumaczę.
