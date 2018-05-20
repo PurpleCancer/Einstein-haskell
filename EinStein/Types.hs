@@ -6,7 +6,7 @@ module EinStein.Types
 , GameState(..)
 ) where
 
-data Winner = Maybe Int deriving (Show)
+data Winner = Winner (Maybe Int) deriving (Show)
 
 data Point = Point Int Int deriving (Show, Eq)
 
