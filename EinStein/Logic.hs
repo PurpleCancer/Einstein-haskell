@@ -122,6 +122,8 @@ getWinner :: GameState -> Winner
 getWinner (GameState player _ stones) =
     let p0Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 0)) (p == (Point 4 4))) stones
         p1Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 1)) (p == (Point 0 0))) stones
-    in if (length p0Winners) > 0 then Winner (Just (Player 0))
-    else if (length p1Winners) > 0 then Winner (Just (Player 1))
+        p0Stones = filter (\(pl, _, _) -> pl == (Player 0)) stones
+        p1Stones = filter (\(pl, _, _) -> pl == (Player 1)) stones
+    in if ((length p0Winners) > 0 || (length p1Stones) == 0) then Winner (Just (Player 0))
+    else if ((length p1Winners) > 0 || (length p0Stones) == 0) then Winner (Just (Player 1))
     else Winner Nothing
