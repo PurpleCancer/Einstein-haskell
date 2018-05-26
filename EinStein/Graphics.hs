@@ -1,6 +1,7 @@
-module EinStein.Graphics(drawBoard) where
+module EinStein.Graphics({-drawBoard, -}startGame) where
 
 import Graphics.Gloss
+import Graphics.Gloss.Interface.Pure.Game
 
 import EinStein.Types
 
@@ -30,8 +31,26 @@ drawStone player (Dice n) (Point x y) = do
             scale 0.3 0.3 $ translate (-35) (-40) $ Text $ show n
      ]
 
-drawBoard :: GameState -> IO ()
-drawBoard (GameState _ _ stones) = do
+drawState :: GameState -> Picture
+drawState (GameState player dice stones) = do
     let grid = drawGrid
+    -- todo if selectedStone is Nothing
+    -- then
+    --     draw $ getHints for selecting stones
+    -- else
+    --     draw $ getHints for moves
+    -- (I need 2 getHints. What do I have now?)
     let stonePic = Pictures $ map (\(p, d, f) -> drawStone p d f) stones
-    display window background (Pictures [grid, stonePic])
+    Pictures [grid, stonePic]
+
+{-drawBoard :: GameState -> IO ()
+drawBoard state = do
+    display window background $ drawState state-}
+
+update :: Float -> GameState -> GameState
+update _ state = state
+
+startGame :: GameState -> (Event -> GameState -> GameState) -> IO ()
+startGame start handleEvent = play window background 2 start drawState
+    handleEvent update
+    -- fixme closes window on ESC but doesn’t terminate
