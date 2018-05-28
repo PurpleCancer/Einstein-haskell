@@ -22,8 +22,8 @@ startState = do
     let p0Dice = shuffle' diceList 6 g
     g <- newStdGen
     let p1Dice = shuffle' diceList 6 g
-    let p0State = [(Player 0, Dice (p0Dice !! 0), Point 0 0),(Player 0, Dice (p0Dice !! 1), Point 0 1),(Player 0, Dice (p0Dice !! 2), Point 0 2),(Player 0, Dice (p0Dice !! 3), Point 1 0),(Player 0, Dice (p0Dice !! 4), Point 1 1),(Player 0, Dice (p0Dice !! 5), Point 2 0)]
-    let p1State = [(Player 1, Dice (p1Dice !! 0), Point 4 4),(Player 1, Dice (p1Dice !! 1), Point 4 3),(Player 1, Dice (p1Dice !! 2), Point 4 2),(Player 1, Dice (p1Dice !! 3), Point 3 4),(Player 1, Dice (p1Dice !! 4), Point 3 3),(Player 1, Dice (p1Dice !! 5), Point 2 4)]
+    let p0State = [Stone (Player 0) (Dice (p0Dice !! 0)) (Point 0 0),Stone (Player 0) (Dice (p0Dice !! 1)) (Point 0 1),Stone (Player 0) (Dice (p0Dice !! 2)) (Point 0 2),Stone (Player 0) (Dice (p0Dice !! 3)) (Point 1 0),Stone (Player 0) (Dice (p0Dice !! 4)) (Point 1 1),Stone (Player 0) (Dice (p0Dice !! 5)) (Point 2 0)]
+    let p1State = [Stone (Player 1) (Dice (p1Dice !! 0)) (Point 4 4),Stone (Player 1) (Dice (p1Dice !! 1)) (Point 4 3),Stone (Player 1) (Dice (p1Dice !! 2)) (Point 4 2),Stone (Player 1) (Dice (p1Dice !! 3)) (Point 3 4),Stone (Player 1) (Dice (p1Dice !! 4)) (Point 3 3),Stone (Player 1) (Dice (p1Dice !! 5)) (Point 2 4)]
     return $ GameState (Player 0) (dice) (p0State ++ p1State)
 
 -- verify whether the point is inside the board
@@ -40,9 +40,9 @@ genMoves pl (Point x y) =
     Moves $ map (moveFromPoint pl (Point x y)) $ filter legalPoint [(Point (x + inc) y), (Point x (y + inc))]
         where inc = if (pl == Player 0) then 1 else -1
 
--- extract point from the stone tuple
-stone2Point :: (Player, Dice, Point) -> Point
-stone2Point (_, _, p) = p
+-- extract point from the stone object
+stone2Point :: Stone -> Point
+stone2Point (Stone _ _ p) = p
 
 -- flatten two Moves objects into one
 flattenMoves :: Moves -> Moves -> Moves
@@ -51,7 +51,7 @@ flattenMoves (Moves m1) (Moves m2) = Moves (m1 ++ m2)
 -- gets player moves for all the stones supplied in the GameState object
 getPlayerMoves :: GameState -> Moves
 getPlayerMoves (GameState pl _ stones) =
-    foldl flattenMoves (Moves []) $ map (genMoves pl) $ map stone2Point $ filter (\(pls, _, _) -> pl == pls) stones
+    foldl flattenMoves (Moves []) $ map (genMoves pl) $ map stone2Point $ filter (\(Stone pls _ _) -> pl == pls) stones
 
 -- filter movable Dice from a list based on the rolled value
 getLegalDice :: Dice -> [Dice] -> [Dice]
@@ -78,10 +78,10 @@ getLegalDice target ds =
 getMoves :: GameState -> Moves
 getMoves (GameState p dice stones) =
     getPlayerMoves (GameState p dice legalStones)
-    where playerStones = filter (\(pl, _, _) -> p == pl) stones
-          playerDice = map (\(_, d, _) -> d) playerStones
+    where playerStones = filter (\(Stone pl _ _) -> p == pl) stones
+          playerDice = map (\(Stone _ d _) -> d) playerStones
           legalDice = getLegalDice dice playerDice
-          legalStones = filter (\(_, d, _) -> elem d legalDice) playerStones
+          legalStones = filter (\(Stone _ d _) -> elem d legalDice) playerStones
 
 
 
@@ -99,10 +99,10 @@ doMove' (GameState (Player pID) dice stones) move newDice =
     if verifyLegalMove (GameState (Player pID) dice stones) move
     then let
         Move _ oldPoint newPoint = move
-        oldStone = head $ filter (\(_, _, p) -> p == oldPoint) stones
-        (player, diceVal, _) = oldStone
-        newStone = (player, diceVal, newPoint)
-        newStones = (filter (\(_, _, p) -> (&&) (p /= oldPoint) (p /= newPoint)) stones) ++ [newStone]
+        oldStone = head $ filter (\(Stone _ _ p) -> p == oldPoint) stones
+        Stone player diceVal _ = oldStone
+        newStone = Stone player diceVal newPoint
+        newStones = (filter (\(Stone _ _ p) -> (&&) (p /= oldPoint) (p /= newPoint)) stones) ++ [newStone]
         newPID = mod (pID + 1) 2
     in (GameState (Player newPID) newDice newStones)
     else (GameState (Player pID) dice stones)
@@ -120,10 +120,10 @@ doMove gs move = do
 -- get a winner if a game state has one
 getWinner :: GameState -> Winner
 getWinner (GameState player _ stones) =
-    let p0Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 0)) (p == (Point 4 4))) stones
-        p1Winners = filter (\(pl, _, p) -> (&&) (pl == (Player 1)) (p == (Point 0 0))) stones
-        p0Stones = filter (\(pl, _, _) -> pl == (Player 0)) stones
-        p1Stones = filter (\(pl, _, _) -> pl == (Player 1)) stones
+    let p0Winners = filter (\(Stone pl _ p) -> (&&) (pl == (Player 0)) (p == (Point 4 4))) stones
+        p1Winners = filter (\(Stone pl _ p) -> (&&) (pl == (Player 1)) (p == (Point 0 0))) stones
+        p0Stones = filter (\(Stone pl _ _) -> pl == (Player 0)) stones
+        p1Stones = filter (\(Stone pl _ _) -> pl == (Player 1)) stones
     in if ((length p0Winners) > 0 || (length p1Stones) == 0) then Winner (Just (Player 0))
     else if ((length p1Winners) > 0 || (length p0Stones) == 0) then Winner (Just (Player 1))
     else Winner Nothing
