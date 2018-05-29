@@ -3,6 +3,10 @@ module EinStein.Logic
 , getMoves
 , doMove
 , getWinner
+, stone2Point
+, verifyLegalMove
+, verifyLegalSelect
+, stoneAt
 ) where
 
 import EinStein.Types
@@ -127,3 +131,31 @@ getWinner (GameState player _ stones) =
     in if ((length p0Winners) > 0 || (length p1Stones) == 0) then Winner (Just (Player 0))
     else if ((length p1Winners) > 0 || (length p0Stones) == 0) then Winner (Just (Player 1))
     else Winner Nothing
+
+-- public
+-- check if selection is valid
+verifyLegalSelect :: GameState -> Maybe Stone -> Bool
+verifyLegalSelect (GameState _ dice stones) selection = 
+    case selection of
+      Nothing -> False
+      Just stone -> do
+          let (Stone player number _) = stone
+          let (Stone _ bigger _) =
+                  minimumBy (\(Stone _ n1 _) -> \(Stone _ n2 _) ->
+                      compare n1 n2)
+                  (filter (\(Stone pl num _) -> (pl == player) &&
+                      (num >= dice)) stones)
+          let (Stone _ smaller _) =
+                  maximumBy (\(Stone _ n1 _) -> \(Stone _ n2 _) ->
+                      compare n1 n2)
+                  (filter (\(Stone pl num _) -> (pl == player) &&
+                      (num <= dice)) stones)
+          number == smaller || number == bigger
+
+-- public
+-- get stone on field (or Nothing)
+stoneAt :: GameState -> EinStein.Types.Point -> Maybe Stone
+stoneAt (GameState _ _ stones) field =
+    case filter (\(Stone _ _ stoneField) -> stoneField == field) stones of
+      [] -> Nothing
+      stones -> Just (stones !! 0)
