@@ -23,7 +23,7 @@ drawGrid = translate (-250) (-250) $ Pictures [
     ]
 
 drawStone :: Stone -> Picture
-drawStone (Stone player number (Point x y)) = do
+drawStone (Stone player (Dice number) (Point x y)) = do
     let colour = if player == Player 0 then yellow else green
     Pictures [
         translate (fromIntegral (x - 2) * 100) (fromIntegral (2 - y) * 100) $
