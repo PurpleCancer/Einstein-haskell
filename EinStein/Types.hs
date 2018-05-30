@@ -7,7 +7,7 @@ module EinStein.Types
 , Moves(..)
 , Stone(..)
 , GameState(..)
-, GameSnapshot(..)
+, Game(..)
 ) where
 
 data Player = Player Int deriving (Show, Eq)
@@ -26,4 +26,4 @@ data Stone = Stone Player Dice Point deriving (Show, Eq)
 
 data GameState = GameState Player Dice [Stone] deriving (Show, Eq)
 
-data GameSnapshot = GameSnapshot (Maybe Stone) GameState deriving (Show, Eq)
+data Game = Game (Maybe Stone) GameState [Int] deriving (Show, Eq)

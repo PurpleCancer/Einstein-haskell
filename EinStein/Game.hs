@@ -8,9 +8,9 @@ import EinStein.Graphics
 import EinStein.Logic
 import EinStein.Types
 
-handleEvent :: Event -> GameSnapshot -> GameSnapshot
+handleEvent :: Event -> Game -> Game
 handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y))
-  (GameSnapshot selected state) = do
+  (Game selected state diceList) = do
     let fX = div (round $ x + 250.0) 100
     let fY = 4 - (div (round $ y + 250.0) 100)
 
@@ -21,17 +21,21 @@ handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y))
       Just stone -> if verifyLegalMove state (Move player
                                                    (stone2Point stone)
                                                    (Point fX fY))
-                    then
-                -- OK! Now I’m at wit’s end
-                        doMove state (Move player (stone2Point stone)
-                                          (Point fX fY)) >>=
-                        \newState -> (GameSnapshot Nothing newState)
-                else (GameSnapshot selected state)
+                    then do 
+                        
+                        (Game Nothing (doMove' state
+                                               (Move player (stone2Point stone)
+                                                     (Point fX fY))
+                                               (Dice $ head diceList))
+                              (tail diceList))
+                    else (Game selected state diceList)
       Nothing -> if verifyLegalSelect state selectedStone
-                    then (GameSnapshot selectedStone state)
-                    else (GameSnapshot selected state)
+                    then (Game selectedStone state diceList)
+                    else (Game selected state diceList)
 handleEvent _ state = state
 
 playEinstein :: IO ()
-playEinstein = startState >>=
-    \state -> startGame (GameSnapshot Nothing state) handleEvent
+playEinstein = do 
+    state <- startState
+    listOfDice <- randomList 512
+    startGame (Game Nothing state listOfDice) handleEvent

@@ -32,8 +32,8 @@ drawStone (Stone player (Dice number) (Point x y)) = do
             scale 0.3 0.3 $ translate (-35) (-40) $ Text $ show number
      ]
 
-drawState :: GameSnapshot -> Picture
-drawState (GameSnapshot selected (GameState player dice stones)) = do
+drawState :: Game -> Picture
+drawState (Game selected (GameState player dice stones) diceList) = do
     let grid = drawGrid
     -- todo if selectedStone is Nothing
     -- then
@@ -44,10 +44,9 @@ drawState (GameSnapshot selected (GameState player dice stones)) = do
     let stonePic = Pictures $ map (\s -> drawStone s) stones
     Pictures [grid, stonePic]
 
-update :: Float -> GameSnapshot -> GameSnapshot
+update :: Float -> Game -> Game
 update _ snapshot = snapshot
 
-startGame :: GameSnapshot -> (Event -> GameSnapshot -> GameSnapshot) -> IO ()
+startGame :: Game -> (Event -> Game -> Game) -> IO ()
 startGame start handleEvent = play window background 60 start drawState
     handleEvent update >> putStrLn "out"
-    -- fixme closes window on ESC but doesn’t terminate

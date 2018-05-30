@@ -1,12 +1,13 @@
 module EinStein.Logic
 ( startState
 , getMoves
-, doMove
+, doMove'
 , getWinner
 , stone2Point
 , verifyLegalMove
 , verifyLegalSelect
 , stoneAt
+, randomList
 ) where
 
 import EinStein.Types
@@ -159,3 +160,10 @@ stoneAt (GameState _ _ stones) field =
     case filter (\(Stone _ _ stoneField) -> stoneField == field) stones of
       [] -> Nothing
       stones -> Just (stones !! 0)
+
+randomList :: Int -> IO([Int])
+randomList 0 = return []
+randomList n = do
+  r  <- randomRIO (1,6)
+  rs <- randomList (n-1)
+  return (r:rs) 
