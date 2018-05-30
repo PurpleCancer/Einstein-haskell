@@ -136,7 +136,7 @@ getWinner (GameState player _ stones) =
 -- public
 -- check if selection is valid
 verifyLegalSelect :: GameState -> Maybe Stone -> Bool
-verifyLegalSelect (GameState _ dice stones) selection = 
+verifyLegalSelect (GameState gamePlayer dice stones) selection = 
     case selection of
       Nothing -> False
       Just stone -> do
@@ -151,7 +151,7 @@ verifyLegalSelect (GameState _ dice stones) selection =
                       compare n1 n2)
                   (filter (\(Stone pl num _) -> (pl == player) &&
                       (num <= dice)) stones)
-          number == smaller || number == bigger
+          (number == smaller || number == bigger) && (gamePlayer == player)
 
 -- public
 -- get stone on field (or Nothing)

@@ -17,21 +17,20 @@ handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y))
     let selectedStone = stoneAt state $ Point fX fY
     let (GameState player dice stones) = state
     
+    -- todo if selected == selected stone -> deselect
     case selected of
       Just stone -> if verifyLegalMove state (Move player
                                                    (stone2Point stone)
                                                    (Point fX fY))
-                    then do 
-                        
-                        (Game Nothing (doMove' state
+                    then Game Nothing (doMove' state
                                                (Move player (stone2Point stone)
                                                      (Point fX fY))
                                                (Dice $ head diceList))
-                              (tail diceList))
-                    else (Game selected state diceList)
+                              (tail diceList)
+                    else Game selected state diceList
       Nothing -> if verifyLegalSelect state selectedStone
-                    then (Game selectedStone state diceList)
-                    else (Game selected state diceList)
+                    then Game selectedStone state diceList
+                    else Game selected state diceList
 handleEvent _ state = state
 
 playEinstein :: IO ()
