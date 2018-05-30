@@ -42,7 +42,7 @@ moveFromPoint pl start finish = Move pl start finish
 -- generate all legal moves for a player and a point
 genMoves :: Player -> Point -> Moves
 genMoves pl (Point x y) = 
-    Moves $ map (moveFromPoint pl (Point x y)) $ filter legalPoint [(Point (x + inc) y), (Point x (y + inc))]
+    Moves $ map (moveFromPoint pl (Point x y)) $ filter legalPoint [(Point (x + inc) y), (Point x (y + inc)), (Point (x + inc) (y + inc))]
         where inc = if (pl == Player 0) then 1 else -1
 
 -- extract point from the stone object
