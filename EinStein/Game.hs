@@ -8,6 +8,14 @@ import EinStein.Graphics
 import EinStein.Logic
 import EinStein.Types
 
+moveIfPossible :: GameState -> Move -> [Int] -> Maybe Stone -> Game
+moveIfPossible state move diceList selected = do
+             if verifyLegalMove state  move
+                then Game Nothing (doMove' state move (Dice $ head diceList))
+                          (tail diceList)
+             else Game selected state diceList
+
+
 handleEvent :: Event -> Game -> Game
 handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y))
   (Game selected state diceList) = do
@@ -17,17 +25,21 @@ handleEvent (EventKey (MouseButton LeftButton) Down _ (x, y))
     let selectedStone = stoneAt state $ Point fX fY
     let (GameState player dice stones) = state
     
-    -- todo if selected == selected stone -> deselect
     case selected of
-      Just stone -> if verifyLegalMove state (Move player
-                                                   (stone2Point stone)
-                                                   (Point fX fY))
-                    then Game Nothing (doMove' state
-                                               (Move player (stone2Point stone)
-                                                     (Point fX fY))
-                                               (Dice $ head diceList))
-                              (tail diceList)
-                    else Game selected state diceList
+      Just stone ->
+          case selectedStone of
+            Nothing -> moveIfPossible state (Move player
+                                                  (stone2Point stone)
+                                                  (Point fX fY))
+                                      diceList selected
+            Just s ->
+                if stone == s
+                   then Game Nothing state diceList
+                else
+                   moveIfPossible state (Move player
+                                                  (stone2Point stone)
+                                                  (Point fX fY))
+                                      diceList selected
       Nothing -> if verifyLegalSelect state selectedStone
                     then Game selectedStone state diceList
                     else Game selected state diceList
