@@ -35,18 +35,27 @@ drawStone (Stone player (Dice number) (Point x y)) = do
 drawState :: Game -> Picture
 drawState (Game selected (GameState player dice stones) diceList) = do
     let grid = drawGrid
-    -- todo if selectedStone is Nothing
-    -- then
-    --     draw $ getHints for selecting stones
-    -- else
-    --     draw $ getHints for moves
-    -- (I need 2 getHints. What do I have now?)
     let stonePic = Pictures $ map (\s -> drawStone s) stones
     Pictures [grid, stonePic]
+
+drawHUD :: Game -> Picture
+drawHUD (Game selected (GameState player (Dice dice) stones) diceList) =
+    Pictures [
+        translate (-250) (300) $ scale 0.3 0.3 $
+            Text $ "Dice: " ++ show dice ++ ", " ++ 
+                (if player == Player 0 then "Yellow" else "Green")
+                ++ " turn",
+        translate (-250) (255) $ scale 0.3 0.3 $
+            Text $ "Selected: " ++ case selected of
+                 Nothing -> "None"
+                 Just (Stone _ (Dice stone) _) -> show stone]
+
+drawUI :: Game -> Picture
+drawUI game = Pictures [drawState game, drawHUD game]
 
 update :: Float -> Game -> Game
 update _ snapshot = snapshot
 
 startGame :: Game -> (Event -> Game -> Game) -> IO ()
-startGame start handleEvent = play window background 60 start drawState
+startGame start handleEvent = play window background 60 start drawUI
     handleEvent update >> putStrLn "out"
