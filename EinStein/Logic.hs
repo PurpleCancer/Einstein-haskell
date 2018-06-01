@@ -53,10 +53,16 @@ stone2Point (Stone _ _ p) = p
 flattenMoves :: Moves -> Moves -> Moves
 flattenMoves (Moves m1) (Moves m2) = Moves (m1 ++ m2)
 
+-- fold list of multiple Moves objects
+foldMoves :: [Moves] -> Moves
+foldMoves [] = Moves []
+foldMoves [m] = m
+foldMoves ml = foldl flattenMoves (Moves []) ml
+
 -- gets player moves for all the stones supplied in the GameState object
 getPlayerMoves :: GameState -> Moves
 getPlayerMoves (GameState pl _ stones) =
-    foldl flattenMoves (Moves []) $ map (genMoves pl) $ map stone2Point $ filter (\(Stone pls _ _) -> pl == pls) stones
+    foldMoves $ map (genMoves pl) $ map stone2Point $ filter (\(Stone pls _ _) -> pl == pls) stones
 
 -- filter movable Dice from a list based on the rolled value
 getLegalDice :: Dice -> [Dice] -> [Dice]
