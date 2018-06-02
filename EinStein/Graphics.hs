@@ -5,6 +5,7 @@ import Graphics.Gloss.Interface.Pure.Game
 -- import Debug.Trace
 
 import EinStein.Types
+import EinStein.Logic
 
 window :: Display
 window = InWindow "EinStein" (700, 700) (0, 0)
@@ -33,13 +34,13 @@ drawStone (Stone player (Dice number) (Point x y)) = do
      ]
 
 drawState :: Game -> Picture
-drawState (Game selected (GameState player dice stones) diceList) = do
+drawState (Game _ (GameState _ _ stones) _) = do
     let grid = drawGrid
     let stonePic = Pictures $ map (\s -> drawStone s) stones
     Pictures [grid, stonePic]
 
 drawHUD :: Game -> Picture
-drawHUD (Game selected (GameState player (Dice dice) stones) diceList) =
+drawHUD (Game selected (GameState player (Dice dice) _) _) =
     Pictures [
         translate (-250) (300) $ scale 0.3 0.3 $
             Text $ "Dice: " ++ show dice ++ ", " ++ 
@@ -50,12 +51,23 @@ drawHUD (Game selected (GameState player (Dice dice) stones) diceList) =
                  Nothing -> "None"
                  Just (Stone _ (Dice stone) _) -> show stone]
 
+drawWinner :: Player -> Picture
+drawWinner player = Pictures [
+    translate (-250) 100 $ scale 0.5 0.5 $
+        Text $ (if player == (Player 0) then "Yellow" else "Green") ++ " won",
+    translate (-350) (-100) $ scale 0.5 0.5 $
+        Text $ "Press Escape to exit"]
+
 drawUI :: Game -> Picture
-drawUI game = Pictures [drawState game, drawHUD game]
+drawUI (Game selected state diceList) =
+    case getWinner state of
+      Winner Nothing -> Pictures [drawState (Game selected state diceList),
+                                  drawHUD (Game selected state diceList)]
+      Winner (Just winner) -> drawWinner winner
 
 update :: Float -> Game -> Game
 update _ snapshot = snapshot
 
 startGame :: Game -> (Event -> Game -> Game) -> IO ()
 startGame start handleEvent = play window background 60 start drawUI
-    handleEvent update >> putStrLn "out"
+    handleEvent update
