@@ -139,6 +139,14 @@ getWinner (GameState player _ stones) =
     else if ((length p1Winners) > 0 || (length p0Stones) == 0) then Winner (Just (Player 1))
     else Winner Nothing
 
+safeMin :: [Int] -> Maybe Int
+safeMin [] = Nothing
+safeMin list = Just $ minimum list
+
+safeMax :: [Int] -> Maybe Int
+safeMax [] = Nothing
+safeMax list = Just $ maximum list
+
 -- public
 -- check if selection is valid
 verifyLegalSelect :: GameState -> Maybe Stone -> Bool
@@ -146,18 +154,21 @@ verifyLegalSelect (GameState gamePlayer dice stones) selection =
     case selection of
       Nothing -> False
       Just stone -> do
-          let (Stone player number _) = stone
-          let (Stone _ bigger _) =
-                  minimumBy (\(Stone _ n1 _) -> \(Stone _ n2 _) ->
-                      compare n1 n2)
-                  (filter (\(Stone pl num _) -> (pl == player) &&
-                      (num >= dice)) stones)
-          let (Stone _ smaller _) =
-                  maximumBy (\(Stone _ n1 _) -> \(Stone _ n2 _) ->
-                      compare n1 n2)
-                  (filter (\(Stone pl num _) -> (pl == player) &&
-                      (num <= dice)) stones)
-          (number == smaller || number == bigger) && (gamePlayer == player)
+          let (Stone player (Dice number) _) = stone
+          let playersAgree = (gamePlayer == player)
+          let bigger = safeMax $ map (\(Stone _ (Dice n) _) -> n) $
+                            filter (\(Stone pl num _) -> (pl == player) &&
+                                (num <= dice)) stones
+          let isBigger = case bigger of
+                           Nothing -> False
+                           Just num -> num == number
+          let smaller = safeMin $ map (\(Stone _ (Dice n) _) -> n) $
+                            filter (\(Stone pl num _) -> (pl == player) &&
+                                (num >= dice)) stones
+          let isSmaller = case smaller of
+                            Nothing -> False
+                            Just num -> num == number
+          (isBigger || isSmaller) && playersAgree
 
 -- public
 -- get stone on field (or Nothing)
